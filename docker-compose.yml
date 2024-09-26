@@ -1,45 +1,45 @@
-version: '3.8'
+version: '3.8'  # Specify the Docker Compose file format version
 
 services:
-  dind:
-    image: docker:dind
-    container_name: dind
+  dind:  # Docker-in-Docker service
+    image: docker:dind  # Docker image for DinD
+    container_name: dind  # Name of the container
     networks:
-      jenkins:
+      jenkins:  # Connect to the jenkins network
         aliases:
-          - docker
-    privileged: true
+          - docker  # Alias to reach this container from Jenkins
+    privileged: true  # Run in privileged mode to allow Docker commands
     environment:
-      DOCKER_TLS_CERTDIR: /certs
+      DOCKER_TLS_CERTDIR: /certs  # Directory where TLS certificates are stored
     volumes:
-      - docker-certs-ca:/certs/ca
-      - docker-certs-client:/certs/client
-      - jenkins-data:/var/jenkins_home
+      - docker-certs-ca:/certs/ca  # Volume for CA certificates
+      - docker-certs-client:/certs/client  # Volume for client certificates
+      - jenkins-data:/var/jenkins_home  # Volume for Jenkins data
 
-  jenkins:
-    image: jenkins/jenkins:lts-jdk11
-    container_name: jenkins
+  jenkins:  # Jenkins service
+    image: jenkins/jenkins:lts-jdk11  # Use Jenkins LTS version with JDK 11
+    container_name: jenkins  # Name of the container
     networks:
-      - jenkins
-    restart: unless-stopped
+      - jenkins  # Connect to the jenkins network
+    restart: unless-stopped  # Restart policy for Jenkins container
     environment:
-      DOCKER_HOST: tcp://docker:2376
-      DOCKER_CERT_PATH: /certs/client
-      DOCKER_TLS_VERIFY: 1
+      DOCKER_HOST: tcp://docker:2376  # Docker host for Jenkins to connect to DinD
+      DOCKER_CERT_PATH: /certs/client  # Path to client certificates for Docker
+      DOCKER_TLS_VERIFY: 1  # Enable TLS verification for Docker connections
     volumes:
-      - docker-certs-client:/certs/client:ro
-      - jenkins-data:/var/jenkins_home
-      - /usr/bin/docker:/usr/bin/docker
+      - docker-certs-client:/certs/client:ro  # Read-only volume for client certificates
+      - jenkins-data:/var/jenkins_home  # Volume for storing Jenkins data
+      - /usr/bin/docker:/usr/bin/docker  # Bind mount to the Docker binary for Jenkins
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "8080:8080"  # Expose Jenkins web interface on port 8080
+      - "50000:50000"  # Expose Jenkins agent connection port
 
 networks:
-  jenkins:
-    driver: bridge
+  jenkins:  # Define the jenkins network
+    driver: bridge  # Use the bridge driver for networking
 
 volumes:
-  docker-certs-ca: {}
-  docker-certs-client: {}
-  jenkins-data: {}
+  docker-certs-ca: {}  # Volume for CA certificates
+  docker-certs-client: {}  # Volume for client certificates
+  jenkins-data: {}  # Volume for Jenkins data
 
